@@ -51,9 +51,12 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             String email = scanner.nextLine();
             System.out.print("Enter Password: ");
             String password = scanner.nextLine();
+            System.out.print("Enter Role (User/Admin): ");
+            String role = scanner.nextLine();
 
             User user = new User(name, email, password);
-            User response = restTemplate.postForObject(baseUrl, user, User.class);
+            String registerUrl = baseUrl + "/register?role=" + role;
+            User response = restTemplate.postForObject(registerUrl, user, User.class);
             System.out.println("User registered successfully: " + response);
         } catch (HttpClientErrorException e) {
             System.out.println("Failed to register user: " + e.getStatusCode() + " : " + e.getResponseBodyAsString());
@@ -71,8 +74,15 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             String password = scanner.nextLine();
 
             LoginRequest loginRequest = new LoginRequest(email, password);
-            User response = restTemplate.postForObject(baseUrl + "/login", loginRequest, User.class);
-            System.out.println("Login successful. Welcome, " + response.getUsername());
+            LoginResponse response = restTemplate.postForObject(baseUrl + "/login", loginRequest, LoginResponse.class);
+
+            if ("User".equalsIgnoreCase(response.getRole())) {
+                userMenu(scanner, response);
+            } else if ("Admin".equalsIgnoreCase(response.getRole())) {
+                adminMenu(scanner, response);
+            } else {
+                System.out.println("Unknown role. Unable to provide a menu.");
+            }
         } catch (HttpClientErrorException e) {
             System.out.println("Login failed: " + e.getStatusCode() + " : " + e.getResponseBodyAsString());
         } catch (Exception e) {
@@ -80,12 +90,74 @@ public class HomelessConsumingApplication implements CommandLineRunner {
         }
     }
 
+    private void userMenu(Scanner scanner, LoginResponse user) {
+        System.out.println("Welcome, " + user.getUsername() + " (User)");
+        while (true) {
+            System.out.println("\nUser Menu:");
+            System.out.println("1. View Profile");
+            System.out.println("2. Search Services");
+            System.out.println("3. Logout");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1 -> System.out.println("User Profile: " + user);
+                case 2 -> System.out.println("Search Services functionality is under development.");
+                case 3 -> {
+                    System.out.println("Logging out. Goodbye!");
+                    return;
+                }
+                default -> System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void adminMenu(Scanner scanner, LoginResponse admin) {
+        System.out.println("Welcome, " + admin.getUsername() + " (Admin)");
+        while (true) {
+            System.out.println("\nAdmin Menu:");
+            System.out.println("1. View All Users");
+            System.out.println("2. Manage Services");
+            System.out.println("3. Logout");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1 -> viewAllUsers();
+                case 2 -> System.out.println("Manage Services functionality is under development.");
+                case 3 -> {
+                    System.out.println("Logging out. Goodbye!");
+                    return;
+                }
+                default -> System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void viewAllUsers() {
+        try {
+            User[] users = restTemplate.getForObject(baseUrl, User[].class);
+            if (users != null) {
+                System.out.println("All Registered Users:");
+                for (User user : users) {
+                    System.out.println(user);
+                }
+            } else {
+                System.out.println("No users found.");
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while fetching users: " + e.getMessage());
+        }
+    }
+
+    // User class
     private static class User {
         private String username;
         private String email;
         private String password;
 
-        // Constructors
         public User() {
         }
 
@@ -95,7 +167,6 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             this.password = password;
         }
 
-        // Getters and setters
         public String getUsername() {
             return username;
         }
@@ -129,11 +200,11 @@ public class HomelessConsumingApplication implements CommandLineRunner {
         }
     }
 
+    // LoginRequest class
     private static class LoginRequest {
         private String email;
         private String password;
 
-        // Constructors
         public LoginRequest() {
         }
 
@@ -142,7 +213,6 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             this.password = password;
         }
 
-        // Getters and setters
         public String getEmail() {
             return email;
         }
@@ -157,6 +227,36 @@ public class HomelessConsumingApplication implements CommandLineRunner {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+    }
+
+    // LoginResponse class
+    private static class LoginResponse {
+        private String username;
+        private String role;
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
+        }
+
+        @Override
+        public String toString() {
+            return "LoginResponse{" +
+                    "username='" + username + '\'' +
+                    ", role='" + role + '\'' +
+                    '}';
         }
     }
 }
