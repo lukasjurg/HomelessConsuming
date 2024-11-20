@@ -1,10 +1,9 @@
 package team15.homelessconsuming.model;
 
 public class City {
-    private int id;
-    private String name;
-    private String state;
-    private String country;
+
+    private int id; // Matches city_ID from the backend
+    private String name; // Matches city_name from the backend
 
     // Getters and Setters
     public int getId() {
@@ -21,31 +20,5 @@ public class City {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    @Override
-    public String toString() {
-        return "City{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", state='" + state + '\'' +
-                ", country='" + country + '\'' +
-                '}';
     }
 }

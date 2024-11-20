@@ -5,13 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ServiceCategory {
 
     @JsonProperty("category_ID")
-    private int id;
+    private int id; // Corresponds to category_ID from the backend
 
     @JsonProperty("category_name")
-    private String name;
+    private String name; // Corresponds to category_name from the backend
 
     @JsonProperty("category_description")
-    private String description;
+    private String description; // Corresponds to category_description from the backend
 
     // Getters and Setters
     public int getId() {

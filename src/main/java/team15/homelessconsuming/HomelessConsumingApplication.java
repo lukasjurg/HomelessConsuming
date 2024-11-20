@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import team15.homelessconsuming.model.AppService;
 import team15.homelessconsuming.model.LoginRequest;
 import team15.homelessconsuming.model.LoginResponse;
 import team15.homelessconsuming.model.User;
@@ -19,6 +20,7 @@ public class HomelessConsumingApplication implements CommandLineRunner {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final String baseUrl = "http://localhost:8080/api/users";
+    private final String serviceUrl = "http://localhost:8080/api/appservices"; // Replace with actual backend service URL
 
     public static void main(String[] args) {
         SpringApplication.run(HomelessConsumingApplication.class, args);
@@ -117,7 +119,7 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             switch (choice) {
                 case 1 -> System.out.println("User Profile: " + user);
                 case 2 -> updateUserProfile(scanner, user.getId());
-                case 3 -> System.out.println("View Services functionality is under development.");
+                case 3 -> viewServices(scanner);
                 case 4 -> System.out.println("Give Feedback functionality is under development.");
                 case 5 -> {
                     System.out.println("Logging out. Goodbye!");
@@ -127,6 +129,53 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             }
         }
     }
+
+    private void viewServices(Scanner scanner) {
+        while (true) {
+            System.out.println("\nView Services Menu:");
+            System.out.println("1. Print out all available services");
+            System.out.println("2. Go back");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (choice) {
+                case 1 -> printAllServices();
+                case 2 -> {
+                    System.out.println("Returning to the main menu...");
+                    return;
+                }
+                default -> System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void printAllServices() {
+        try {
+            AppService[] services = restTemplate.getForObject(serviceUrl, AppService[].class);
+
+            if (services != null && services.length > 0) {
+                System.out.println("\nAvailable Services:");
+                for (AppService service : services) {
+                    System.out.println("-----------------------------------");
+                    System.out.println("Service ID: " + service.getId());
+                    System.out.println("Name: " + service.getName());
+                    System.out.println("Address: " + service.getAddress());
+                    System.out.println("Contact Number: " + service.getContactNumber());
+                    System.out.println("Start Time: " + service.getStartTime());
+                    System.out.println("End Time: " + service.getEndTime());
+                    System.out.println("City: " + (service.getCity() != null ? service.getCity().getName() : "N/A"));
+                    System.out.println("Category: " + (service.getCategory() != null ? service.getCategory().getName() : "N/A"));
+                    System.out.println("-----------------------------------");
+                }
+            } else {
+                System.out.println("No services are currently available.");
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while fetching services: " + e.getMessage());
+        }
+    }
+
 
     private void updateUserProfile(Scanner scanner, int userId) {
         try {
@@ -153,7 +202,6 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             System.out.println("An error occurred: " + e.getMessage());
         }
     }
-
 
     private void adminMenu(Scanner scanner, LoginResponse admin) {
         System.out.println("Welcome, " + admin.getUsername() + " (Admin)");
