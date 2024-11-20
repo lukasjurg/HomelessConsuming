@@ -4,46 +4,46 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ServiceCategory {
 
-    @JsonProperty("category_ID")
-    private int id; // Corresponds to category_ID from the backend
+    @JsonProperty("category_id") // Matches the backend field name
+    private int categoryId;
 
-    @JsonProperty("category_name")
-    private String name; // Corresponds to category_name from the backend
+    @JsonProperty("category_name") // Matches the backend field name
+    private String categoryName;
 
-    @JsonProperty("category_description")
-    private String description; // Corresponds to category_description from the backend
+    @JsonProperty("category_description") // Matches the backend field name
+    private String categoryDescription;
 
     // Getters and Setters
-    public int getId() {
-        return id;
+    public int getCategoryId() {
+        return categoryId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
     }
 
-    public String getName() {
-        return name;
+    public String getCategoryName() {
+        return categoryName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
 
-    public String getDescription() {
-        return description;
+    public String getCategoryDescription() {
+        return categoryDescription;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setCategoryDescription(String categoryDescription) {
+        this.categoryDescription = categoryDescription;
     }
 
     @Override
     public String toString() {
         return "ServiceCategory{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
+                "categoryId=" + categoryId +
+                ", categoryName='" + categoryName + '\'' +
+                ", categoryDescription='" + categoryDescription + '\'' +
                 '}';
     }
 }

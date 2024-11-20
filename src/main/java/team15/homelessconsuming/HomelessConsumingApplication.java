@@ -20,7 +20,7 @@ public class HomelessConsumingApplication implements CommandLineRunner {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final String baseUrl = "http://localhost:8080/api/users";
-    private final String serviceUrl = "http://localhost:8080/api/appservices"; // Replace with actual backend service URL
+    private final String serviceUrl = "http://localhost:8080/api/appservices";
 
     public static void main(String[] args) {
         SpringApplication.run(HomelessConsumingApplication.class, args);
@@ -134,14 +134,20 @@ public class HomelessConsumingApplication implements CommandLineRunner {
         while (true) {
             System.out.println("\nView Services Menu:");
             System.out.println("1. Print out all available services");
-            System.out.println("2. Go back");
+            System.out.println("2. Filter services by category");
+            System.out.println("3. Filter services by city");
+            System.out.println("4. Filter services by working hours");
+            System.out.println("5. Go back");
             System.out.print("Enter your choice: ");
             int choice = scanner.nextInt();
             scanner.nextLine();
 
             switch (choice) {
                 case 1 -> printAllServices();
-                case 2 -> {
+                case 2 -> filterServicesByCategory(scanner);
+                case 3 -> filterServicesByCity(scanner);
+                case 4 -> filterServicesByWorkingHours(scanner);
+                case 5 -> {
                     System.out.println("Returning to the main menu...");
                     return;
                 }
@@ -158,14 +164,14 @@ public class HomelessConsumingApplication implements CommandLineRunner {
                 System.out.println("\nAvailable Services:");
                 for (AppService service : services) {
                     System.out.println("-----------------------------------");
-                    System.out.println("Service ID: " + service.getId());
+                    System.out.println("Service ID: " + service.getServiceId());
                     System.out.println("Name: " + service.getName());
                     System.out.println("Address: " + service.getAddress());
                     System.out.println("Contact Number: " + service.getContactNumber());
                     System.out.println("Start Time: " + service.getStartTime());
                     System.out.println("End Time: " + service.getEndTime());
-                    System.out.println("City: " + (service.getCity() != null ? service.getCity().getName() : "N/A"));
-                    System.out.println("Category: " + (service.getCategory() != null ? service.getCategory().getName() : "N/A"));
+                    System.out.println("City: " + (service.getCity() != null ? service.getCity().getCityName() : "N/A"));
+                    System.out.println("Category: " + (service.getCategory() != null ? service.getCategory().getCategoryName() : "N/A"));
                     System.out.println("-----------------------------------");
                 }
             } else {
@@ -176,6 +182,67 @@ public class HomelessConsumingApplication implements CommandLineRunner {
         }
     }
 
+    private void filterServicesByCategory(Scanner scanner) {
+        System.out.print("Enter category name: ");
+        String category = scanner.nextLine();
+        try {
+            String url = serviceUrl + "?categoryName=" + category;
+            AppService[] services = restTemplate.getForObject(url, AppService[].class);
+
+            if (services != null && services.length > 0) {
+                System.out.println("\nFiltered Services by Category:");
+                for (AppService service : services) {
+                    System.out.println(service);
+                }
+            } else {
+                System.out.println("No services found for the given category.");
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while filtering services: " + e.getMessage());
+        }
+    }
+
+    private void filterServicesByCity(Scanner scanner) {
+        System.out.print("Enter city name: ");
+        String city = scanner.nextLine();
+        try {
+            String url = serviceUrl + "?cityName=" + city;
+            AppService[] services = restTemplate.getForObject(url, AppService[].class);
+
+            if (services != null && services.length > 0) {
+                System.out.println("\nFiltered Services by City:");
+                for (AppService service : services) {
+                    System.out.println(service);
+                }
+            } else {
+                System.out.println("No services found for the given city.");
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while filtering services: " + e.getMessage());
+        }
+    }
+
+    private void filterServicesByWorkingHours(Scanner scanner) {
+        System.out.print("Enter start time (HH:mm): ");
+        String startTime = scanner.nextLine();
+        System.out.print("Enter end time (HH:mm): ");
+        String endTime = scanner.nextLine();
+        try {
+            String url = serviceUrl + "?startTime=" + startTime + "&endTime=" + endTime;
+            AppService[] services = restTemplate.getForObject(url, AppService[].class);
+
+            if (services != null && services.length > 0) {
+                System.out.println("\nFiltered Services by Working Hours:");
+                for (AppService service : services) {
+                    System.out.println(service);
+                }
+            } else {
+                System.out.println("No services found for the given working hours.");
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while filtering services: " + e.getMessage());
+        }
+    }
 
     private void updateUserProfile(Scanner scanner, int userId) {
         try {

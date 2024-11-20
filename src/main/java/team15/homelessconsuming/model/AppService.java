@@ -1,25 +1,32 @@
 package team15.homelessconsuming.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalTime;
 
 public class AppService {
 
-    private int id; // Matches service_ID from the backend
+    private int serviceId;
     private String name;
     private String address;
     private String contactNumber;
+
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime startTime;
+
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime endTime;
+
     private City city;
     private ServiceCategory category;
 
     // Getters and Setters
-    public int getId() {
-        return id;
+    public int getServiceId() {
+        return serviceId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setServiceId(int serviceId) {
+        this.serviceId = serviceId;
     }
 
     public String getName() {
@@ -81,14 +88,14 @@ public class AppService {
     @Override
     public String toString() {
         return "AppService{" +
-                "id=" + id +
+                "serviceId=" + serviceId +
                 ", name='" + name + '\'' +
                 ", address='" + address + '\'' +
                 ", contactNumber='" + contactNumber + '\'' +
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
-                ", city=" + (city != null ? city.getName() : "N/A") +
-                ", category=" + (category != null ? category.getName() : "N/A") +
+                ", city=" + (city != null ? city.getCityName() : "N/A") +
+                ", category=" + (category != null ? category.getCategoryName() : "N/A") +
                 '}';
     }
 }
