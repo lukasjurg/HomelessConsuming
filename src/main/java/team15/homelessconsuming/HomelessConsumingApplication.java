@@ -3,8 +3,14 @@ package team15.homelessconsuming;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import team15.homelessconsuming.model.LoginRequest;
+import team15.homelessconsuming.model.LoginResponse;
+import team15.homelessconsuming.model.User;
 
 import java.util.Scanner;
 
@@ -28,7 +34,7 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             System.out.println("3. Exit");
             System.out.print("Enter your choice: ");
             int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine();
 
             switch (choice) {
                 case 1 -> registerUser(scanner);
@@ -74,7 +80,12 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             String password = scanner.nextLine();
 
             LoginRequest loginRequest = new LoginRequest(email, password);
-            LoginResponse response = restTemplate.postForObject(baseUrl + "/login", loginRequest, LoginResponse.class);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, headers);
+
+            LoginResponse response = restTemplate.postForObject(baseUrl + "/login", requestEntity, LoginResponse.class);
 
             if ("User".equalsIgnoreCase(response.getRole())) {
                 userMenu(scanner, response);
@@ -95,16 +106,20 @@ public class HomelessConsumingApplication implements CommandLineRunner {
         while (true) {
             System.out.println("\nUser Menu:");
             System.out.println("1. View Profile");
-            System.out.println("2. Search Services");
-            System.out.println("3. Logout");
+            System.out.println("2. Update Profile");
+            System.out.println("3. View Services");
+            System.out.println("4. Give Feedback");
+            System.out.println("5. Log Out");
             System.out.print("Enter your choice: ");
             int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine();
 
             switch (choice) {
                 case 1 -> System.out.println("User Profile: " + user);
-                case 2 -> System.out.println("Search Services functionality is under development.");
-                case 3 -> {
+                case 2 -> updateUserProfile(scanner, user.getId());
+                case 3 -> System.out.println("View Services functionality is under development.");
+                case 4 -> System.out.println("Give Feedback functionality is under development.");
+                case 5 -> {
                     System.out.println("Logging out. Goodbye!");
                     return;
                 }
@@ -113,16 +128,43 @@ public class HomelessConsumingApplication implements CommandLineRunner {
         }
     }
 
+    private void updateUserProfile(Scanner scanner, int userId) {
+        try {
+            System.out.println("\nUpdate Profile");
+            System.out.print("Enter New Name (leave blank to keep unchanged): ");
+            String newName = scanner.nextLine();
+            System.out.print("Enter New Email (leave blank to keep unchanged): ");
+            String newEmail = scanner.nextLine();
+            System.out.print("Enter New Password (leave blank to keep unchanged): ");
+            String newPassword = scanner.nextLine();
+
+            User updatedUser = new User();
+            if (!newName.isBlank()) updatedUser.setUsername(newName);
+            if (!newEmail.isBlank()) updatedUser.setEmail(newEmail);
+            if (!newPassword.isBlank()) updatedUser.setPassword(newPassword);
+
+            String updateUrl = baseUrl + "/" + userId + "/update-profile";
+
+            restTemplate.put(updateUrl, updatedUser);
+            System.out.println("Profile updated successfully!");
+        } catch (HttpClientErrorException e) {
+            System.out.println("Failed to update profile: " + e.getStatusCode() + " : " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            System.out.println("An error occurred: " + e.getMessage());
+        }
+    }
+
+
     private void adminMenu(Scanner scanner, LoginResponse admin) {
         System.out.println("Welcome, " + admin.getUsername() + " (Admin)");
         while (true) {
             System.out.println("\nAdmin Menu:");
             System.out.println("1. View All Users");
             System.out.println("2. Manage Services");
-            System.out.println("3. Logout");
+            System.out.println("3. Log Out");
             System.out.print("Enter your choice: ");
             int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine();
 
             switch (choice) {
                 case 1 -> viewAllUsers();
@@ -149,114 +191,6 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             }
         } catch (Exception e) {
             System.out.println("An error occurred while fetching users: " + e.getMessage());
-        }
-    }
-
-    // User class
-    private static class User {
-        private String username;
-        private String email;
-        private String password;
-
-        public User() {
-        }
-
-        public User(String username, String email, String password) {
-            this.username = username;
-            this.email = email;
-            this.password = password;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
-
-        @Override
-        public String toString() {
-            return "User{" +
-                    "username='" + username + '\'' +
-                    ", email='" + email + '\'' +
-                    '}';
-        }
-    }
-
-    // LoginRequest class
-    private static class LoginRequest {
-        private String email;
-        private String password;
-
-        public LoginRequest() {
-        }
-
-        public LoginRequest(String email, String password) {
-            this.email = email;
-            this.password = password;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
-    }
-
-    // LoginResponse class
-    private static class LoginResponse {
-        private String username;
-        private String role;
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getRole() {
-            return role;
-        }
-
-        public void setRole(String role) {
-            this.role = role;
-        }
-
-        @Override
-        public String toString() {
-            return "LoginResponse{" +
-                    "username='" + username + '\'' +
-                    ", role='" + role + '\'' +
-                    '}';
         }
     }
 }
