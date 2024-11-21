@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import team15.homelessconsuming.model.AppService;
 import team15.homelessconsuming.model.User;
 
 @Component
@@ -20,4 +21,26 @@ public class ApiClient {
         HttpEntity<User> request = new HttpEntity<>(user, headers);
         restTemplate.postForEntity(url, request, String.class);
     }
+
+    public AppService createService(AppService service) {
+        String url = BASE_URL + "/appservices";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<AppService> request = new HttpEntity<>(service, headers);
+        return restTemplate.postForObject(url, request, AppService.class);
+    }
+
+    public void updateService(int id, AppService service) {
+        String url = BASE_URL + "/appservices/" + id;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<AppService> request = new HttpEntity<>(service, headers);
+        restTemplate.put(url, request);
+    }
+
+    public void deleteService(int id) {
+        String url = BASE_URL + "/appservices/" + id;
+        restTemplate.delete(url);
+    }
+
 }

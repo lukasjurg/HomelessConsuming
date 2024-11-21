@@ -8,11 +8,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import team15.homelessconsuming.model.AppService;
-import team15.homelessconsuming.model.LoginRequest;
-import team15.homelessconsuming.model.LoginResponse;
-import team15.homelessconsuming.model.User;
+import team15.homelessconsuming.model.*;
 
+import java.time.LocalTime;
 import java.util.Scanner;
 
 @SpringBootApplication
@@ -276,20 +274,267 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             System.out.println("\nAdmin Menu:");
             System.out.println("1. View All Users");
             System.out.println("2. Manage Services");
-            System.out.println("3. Log Out");
+            System.out.println("3. Manage Cities");
+            System.out.println("4. Manage Service Categories"); // New option
+            System.out.println("5. Log Out");
             System.out.print("Enter your choice: ");
             int choice = scanner.nextInt();
             scanner.nextLine();
 
             switch (choice) {
                 case 1 -> viewAllUsers();
-                case 2 -> System.out.println("Manage Services functionality is under development.");
-                case 3 -> {
+                case 2 -> manageServices(scanner);
+                case 3 -> manageCities(scanner);
+                case 4 -> manageServiceCategories(scanner); // New method
+                case 5 -> {
                     System.out.println("Logging out. Goodbye!");
                     return;
                 }
                 default -> System.out.println("Invalid choice. Please try again.");
             }
+        }
+    }
+
+    private void manageServiceCategories(Scanner scanner) {
+        while (true) {
+            System.out.println("\nManage Service Categories Menu:");
+            System.out.println("1. View All Categories");
+            System.out.println("2. Create New Category");
+            System.out.println("3. Update Existing Category");
+            System.out.println("4. Delete Category");
+            System.out.println("5. Go Back");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (choice) {
+                case 1 -> printAllCategories();
+                case 2 -> createCategory(scanner);
+                case 3 -> updateCategory(scanner);
+                case 4 -> deleteCategory(scanner);
+                case 5 -> {
+                    System.out.println("Returning to the Admin Menu...");
+                    return;
+                }
+                default -> System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void printAllCategories() {
+        try {
+            String url = serviceUrl.replace("/appservices", "/servicecategories");
+            ServiceCategory[] categories = restTemplate.getForObject(url, ServiceCategory[].class);
+            if (categories != null && categories.length > 0) {
+                System.out.println("\nAvailable Service Categories:");
+                for (ServiceCategory category : categories) {
+                    System.out.println("Category ID: " + category.getCategoryId() + ", Name: " + category.getCategoryName() +
+                            ", Description: " + category.getCategoryDescription());
+                }
+            } else {
+                System.out.println("No categories found.");
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while fetching categories: " + e.getMessage());
+        }
+    }
+
+    private void createCategory(Scanner scanner) {
+        try {
+            System.out.print("Enter Category Name: ");
+            String categoryName = scanner.nextLine();
+            System.out.print("Enter Category Description: ");
+            String categoryDescription = scanner.nextLine();
+
+            ServiceCategory category = new ServiceCategory();
+            category.setCategoryName(categoryName);
+            category.setCategoryDescription(categoryDescription);
+
+            String url = serviceUrl.replace("/appservices", "/servicecategories");
+            ServiceCategory createdCategory = restTemplate.postForObject(url, category, ServiceCategory.class);
+            System.out.println("Category created successfully: " + createdCategory);
+        } catch (Exception e) {
+            System.out.println("An error occurred while creating the category: " + e.getMessage());
+        }
+    }
+
+    private void updateCategory(Scanner scanner) {
+        try {
+            System.out.print("Enter Category ID to Update: ");
+            int categoryId = scanner.nextInt();
+            scanner.nextLine();
+
+            String fetchUrl = serviceUrl.replace("/appservices", "/servicecategories/") + categoryId;
+            ServiceCategory existingCategory = restTemplate.getForObject(fetchUrl, ServiceCategory.class);
+            if (existingCategory == null) {
+                System.out.println("Category with ID " + categoryId + " not found.");
+                return;
+            }
+
+            System.out.print("Enter New Category Name (leave blank to keep unchanged): ");
+            String categoryName = scanner.nextLine();
+            System.out.print("Enter New Category Description (leave blank to keep unchanged): ");
+            String categoryDescription = scanner.nextLine();
+
+            if (!categoryName.isBlank()) {
+                existingCategory.setCategoryName(categoryName);
+            }
+            if (!categoryDescription.isBlank()) {
+                existingCategory.setCategoryDescription(categoryDescription);
+            }
+
+            String updateUrl = serviceUrl.replace("/appservices", "/servicecategories/") + categoryId;
+            restTemplate.put(updateUrl, existingCategory);
+            System.out.println("Category updated successfully.");
+        } catch (Exception e) {
+            System.out.println("An error occurred while updating the category: " + e.getMessage());
+        }
+    }
+
+    private void deleteCategory(Scanner scanner) {
+        try {
+            System.out.print("Enter Category ID to Delete: ");
+            int categoryId = scanner.nextInt();
+            scanner.nextLine();
+
+            String deleteUrl = serviceUrl.replace("/appservices", "/servicecategories/") + categoryId;
+            restTemplate.delete(deleteUrl);
+            System.out.println("Category deleted successfully.");
+        } catch (Exception e) {
+            System.out.println("An error occurred while deleting the category: " + e.getMessage());
+        }
+    }
+
+
+    private void manageServices(Scanner scanner) {
+        while (true) {
+            System.out.println("\nManage Services Menu:");
+            System.out.println("1. View All Services");
+            System.out.println("2. Create New Service");
+            System.out.println("3. Update Existing Service");
+            System.out.println("4. Delete Service");
+            System.out.println("5. Go Back");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (choice) {
+                case 1 -> printAllServices(); // Reuse existing method
+                case 2 -> createService(scanner);
+                case 3 -> updateService(scanner);
+                case 4 -> deleteService(scanner);
+                case 5 -> {
+                    System.out.println("Returning to the Admin Menu...");
+                    return;
+                }
+                default -> System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void createService(Scanner scanner) {
+        try {
+            System.out.println("Enter Service Name: ");
+            String name = scanner.nextLine();
+            System.out.println("Enter Service Address: ");
+            String address = scanner.nextLine();
+            System.out.println("Enter Contact Number: ");
+            String contact = scanner.nextLine();
+            System.out.println("Enter Start Time (HH:mm): ");
+            String startTime = scanner.nextLine();
+            System.out.println("Enter End Time (HH:mm): ");
+            String endTime = scanner.nextLine();
+            System.out.println("Enter City ID: ");
+            int cityId = scanner.nextInt();
+            scanner.nextLine();
+            System.out.println("Enter Category ID: ");
+            int categoryId = scanner.nextInt();
+            scanner.nextLine();
+
+            City city = new City();
+            city.setCityId(cityId);
+            ServiceCategory category = new ServiceCategory();
+            category.setCategoryId(categoryId);
+            AppService service = new AppService();
+            service.setName(name);
+            service.setAddress(address);
+            service.setContactNumber(contact);
+            service.setStartTime(LocalTime.parse(startTime));
+            service.setEndTime(LocalTime.parse(endTime));
+            service.setCity(city);
+            service.setCategory(category);
+
+            String url = serviceUrl;
+            AppService createdService = restTemplate.postForObject(url, service, AppService.class);
+            System.out.println("Service created successfully: " + createdService);
+        } catch (Exception e) {
+            System.out.println("An error occurred while creating the service: " + e.getMessage());
+        }
+    }
+
+    private void updateService(Scanner scanner) {
+        try {
+            System.out.println("Enter Service ID to Update: ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
+
+            // Fetch existing service details
+            String fetchUrl = serviceUrl + "/" + id;
+            AppService existingService = restTemplate.getForObject(fetchUrl, AppService.class);
+            if (existingService == null) {
+                System.out.println("Service with ID " + id + " not found.");
+                return;
+            }
+
+            System.out.println("Enter New Service Name (leave blank to keep unchanged): ");
+            String name = scanner.nextLine();
+            System.out.println("Enter New Service Address (leave blank to keep unchanged): ");
+            String address = scanner.nextLine();
+            System.out.println("Enter New Contact Number (leave blank to keep unchanged): ");
+            String contact = scanner.nextLine();
+            System.out.println("Enter New Start Time (HH:mm) (leave blank to keep unchanged): ");
+            String startTime = scanner.nextLine();
+            System.out.println("Enter New End Time (HH:mm) (leave blank to keep unchanged): ");
+            String endTime = scanner.nextLine();
+            System.out.println("Enter New Category ID (leave blank to keep unchanged): ");
+            String categoryIdInput = scanner.nextLine();
+
+            // Update only non-blank fields
+            if (!name.isBlank()) existingService.setName(name);
+            if (!address.isBlank()) existingService.setAddress(address);
+            if (!contact.isBlank()) existingService.setContactNumber(contact);
+            if (!startTime.isBlank()) existingService.setStartTime(LocalTime.parse(startTime));
+            if (!endTime.isBlank()) existingService.setEndTime(LocalTime.parse(endTime));
+            if (!categoryIdInput.isBlank()) {
+                int categoryId = Integer.parseInt(categoryIdInput);
+                ServiceCategory category = new ServiceCategory();
+                category.setCategoryId(categoryId);
+                existingService.setCategory(category);
+            }
+
+            // Send updated service to the backend
+            String updateUrl = serviceUrl + "/" + id;
+            restTemplate.put(updateUrl, existingService);
+            System.out.println("Service updated successfully.");
+        } catch (HttpClientErrorException e) {
+            System.out.println("Failed to update service: " + e.getStatusCode() + " : " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            System.out.println("An error occurred while updating the service: " + e.getMessage());
+        }
+    }
+
+
+    private void deleteService(Scanner scanner) {
+        try {
+            System.out.println("Enter Service ID to Delete: ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
+
+            String url = serviceUrl + "/" + id;
+            restTemplate.delete(url);
+            System.out.println("Service deleted successfully.");
+        } catch (Exception e) {
+            System.out.println("An error occurred while deleting the service: " + e.getMessage());
         }
     }
 
@@ -306,6 +551,105 @@ public class HomelessConsumingApplication implements CommandLineRunner {
             }
         } catch (Exception e) {
             System.out.println("An error occurred while fetching users: " + e.getMessage());
+        }
+    }
+
+    private void manageCities(Scanner scanner) {
+        while (true) {
+            System.out.println("\nManage Cities Menu:");
+            System.out.println("1. View All Cities");
+            System.out.println("2. Create New City");
+            System.out.println("3. Update Existing City");
+            System.out.println("4. Delete City");
+            System.out.println("5. Go Back");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (choice) {
+                case 1 -> printAllCities();
+                case 2 -> createCity(scanner);
+                case 3 -> updateCity(scanner);
+                case 4 -> deleteCity(scanner);
+                case 5 -> {
+                    System.out.println("Returning to the Admin Menu...");
+                    return;
+                }
+                default -> System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void createCity(Scanner scanner) {
+        try {
+            System.out.print("Enter City Name: ");
+            String cityName = scanner.nextLine();
+
+            City city = new City();
+            city.setCityName(cityName);
+
+            String url = serviceUrl.replace("/appservices", "/cities");
+            City createdCity = restTemplate.postForObject(url, city, City.class);
+            System.out.println("City created successfully: " + createdCity);
+        } catch (Exception e) {
+            System.out.println("An error occurred while creating the city: " + e.getMessage());
+        }
+    }
+
+    private void updateCity(Scanner scanner) {
+        try {
+            System.out.print("Enter City ID to Update: ");
+            int cityId = scanner.nextInt();
+            scanner.nextLine();
+
+            String fetchUrl = serviceUrl.replace("/appservices", "/cities/") + cityId;
+            City existingCity = restTemplate.getForObject(fetchUrl, City.class);
+            if (existingCity == null) {
+                System.out.println("City with ID " + cityId + " not found.");
+                return;
+            }
+
+            System.out.print("Enter New City Name (leave blank to keep unchanged): ");
+            String cityName = scanner.nextLine();
+            if (!cityName.isBlank()) {
+                existingCity.setCityName(cityName);
+            }
+
+            String updateUrl = serviceUrl.replace("/appservices", "/cities/") + cityId;
+            restTemplate.put(updateUrl, existingCity);
+            System.out.println("City updated successfully.");
+        } catch (Exception e) {
+            System.out.println("An error occurred while updating the city: " + e.getMessage());
+        }
+    }
+
+    private void deleteCity(Scanner scanner) {
+        try {
+            System.out.print("Enter City ID to Delete: ");
+            int cityId = scanner.nextInt();
+            scanner.nextLine();
+
+            String deleteUrl = serviceUrl.replace("/appservices", "/cities/") + cityId;
+            restTemplate.delete(deleteUrl);
+            System.out.println("City deleted successfully.");
+        } catch (Exception e) {
+            System.out.println("An error occurred while deleting the city: " + e.getMessage());
+        }
+    }
+
+    private void printAllCities() {
+        try {
+            City[] cities = restTemplate.getForObject(serviceUrl.replace("/appservices", "/cities"), City[].class);
+            if (cities != null && cities.length > 0) {
+                System.out.println("\nAvailable Cities:");
+                for (City city : cities) {
+                    System.out.println("City ID: " + city.getCityId() + ", Name: " + city.getCityName());
+                }
+            } else {
+                System.out.println("No cities found.");
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while fetching cities: " + e.getMessage());
         }
     }
 }
